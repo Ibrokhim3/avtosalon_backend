@@ -2,7 +2,8 @@ const { Router } = require("express");
 const modelCtr = require("../controllers/model-controller");
 const {
   userValidate,
-  postValidate,
+  modelValidate,
+  categoryValidate,
 } = require("../middlewares/validation-middleware");
 const { verifyToken } = require("../middlewares/auth-middleware");
 
@@ -22,7 +23,7 @@ router.get("/get-main-categories", modelCtr.GET_MAIN_CATEGORIES);
 
 //
 
-router.post("/add-post", postValidate, modelCtr.ADD_POST);
+router.post("/add-category", categoryValidate, modelCtr.ADD_CATEGORY);
 router.post("/moderate-post", modelCtr.MODERATE_POSTS);
 
 module.exports = router;

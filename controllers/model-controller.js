@@ -4,6 +4,7 @@ const cloudinary = require("../config/cloudinary-config");
 const fs = require("fs");
 const path = require("path");
 const { v4 } = require("uuid");
+const jwt = require("jsonwebtoken");
 
 module.exports = {
   GET_MODERATING_POSTS: async (req, res) => {
@@ -125,25 +126,24 @@ module.exports = {
       res.status(500).json({ error: true, message: "Internal server error" });
     }
   },
-  ADD_POST: async (req, res) => {
+  ADD_MODEL: async (req, res) => {
     try {
       const {
-        postDate,
-        postTime,
-        postDir,
-        postInnerDir,
-        postType,
-        postLink,
-        speakerName,
-        speakerJob,
-        speakerTelNum,
-        speakerTelNum2,
-        postTitle,
-        postDesc,
-        postText,
+        carName,
+        carPrice,
+        carCategory,
+        tonirovka,
+        motor,
+        year,
+        color,
+        distance,
+        gearbox,
+        desc,
+        allExp,
+        createdBy,
       } = req.body;
 
-      const { name, size, mv } = req.files.postImg;
+      const { name, size, mv } = req.files.carImg;
 
       if (+size / 1048576 > 2) {
         return res
@@ -215,6 +215,168 @@ module.exports = {
       await newPost.save();
 
       return res.status(201).json("Post sent to the moderation");
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ error: true, message: "Internal server error" });
+    }
+  },
+  ADD_CATEGORY: async (req, res) => {
+    try {
+      const { token } = req.headers;
+
+      const userData = jwt.verify(token, process.env.SECRET_KEY);
+
+      console.log(userData);
+
+      if (userData.userRole !== "admin") {
+        return res
+          .status(400)
+          .json("You have no rights to control admin-panel!");
+      }
+
+      const { categoryName } = req.body;
+
+      const { name, size, mv } = req.files.categoryImg;
+
+      if (+size / 1048576 > 2) {
+        return res
+          .status(400)
+          .json("The size of the image must not be over 2mb");
+      }
+
+      const filename = v4() + path.extname(name);
+
+      mv(path.resolve("assets/" + filename), (err) => {
+        if (err)
+          return res
+            .status(400)
+            .json("Something went wrong, while uploading a file");
+      });
+
+      //Uploading file to the cloudinary server:
+
+      let result = null;
+
+      const options = {
+        folder: "avtosalon",
+        use_filename: true,
+        unique_filename: false,
+        overwrite: true,
+      };
+
+      try {
+        result = await cloudinary.uploader.upload(
+          "assets/" + filename,
+          options
+        );
+        if (!result) {
+          return res.status(500).json("Internal server error");
+        }
+        // console.log(result);
+        // return result.public_id;
+      } catch (error) {
+        // console.log(error.message);
+        res.status(500).json({ error: true, message: "Internal server error" });
+      }
+
+      const categoryImgUrl = result?.secure_url;
+
+      //deleting the file from folder
+
+      fs.unlink(path.resolve("assets/" + filename), function (err) {
+        if (err) throw err;
+        console.log("File deleted!");
+      });
+
+      const newCategory = await Category({
+        categoryName,
+        categoryImg: categoryImgUrl,
+        createdBy: userData.userId,
+      });
+
+      await newCategory.save();
+
+      return res.status(201).json("Category added!");
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ error: true, message: "Internal server error" });
+    }
+  },
+  UPDATE_CATEGORY: async (req, res) => {
+    try {
+      const { token } = req.headers;
+
+      const userData = jwt.verify(token, process.env.SECRET_KEY);
+
+      if (userData.userRole !== "admin") {
+        return res
+          .status(400)
+          .json("You have no rights to control admin-panel!");
+      }
+
+      const { categoryName, _id } = req.body;
+
+      const { name, size, mv } = req.files.categoryImg;
+
+      if (+size / 1048576 > 2) {
+        return res
+          .status(400)
+          .json("The size of the image must not be over 2mb");
+      }
+
+      const filename = v4() + path.extname(name);
+
+      mv(path.resolve("assets/" + filename), (err) => {
+        if (err)
+          return res
+            .status(400)
+            .json("Something went wrong, while uploading a file");
+      });
+
+      //Uploading file to the cloudinary server:
+
+      let result = null;
+
+      const options = {
+        folder: "avtosalon",
+        use_filename: true,
+        unique_filename: false,
+        overwrite: true,
+      };
+
+      try {
+        result = await cloudinary.uploader.upload(
+          "assets/" + filename,
+          options
+        );
+        if (!result) {
+          return res.status(500).json("Internal server error");
+        }
+        // console.log(result);
+        // return result.public_id;
+      } catch (error) {
+        // console.log(error.message);
+        res.status(500).json({ error: true, message: "Internal server error" });
+      }
+
+      const categoryImgUrl = result?.secure_url;
+
+      //deleting the file from folder
+
+      fs.unlink(path.resolve("assets/" + filename), function (err) {
+        if (err) throw err;
+        console.log("File deleted!");
+      });
+
+      const newCategory = await Category({
+        categoryName,
+        categoryImg: categoryImgUrl,
+        createdBy: userData.userId,
+      });
+
+      await newCategory.save();
+
+      return res.status(201).json("Category added!");
     } catch (error) {
       console.log(error.message);
       res.status(500).json({ error: true, message: "Internal server error" });
