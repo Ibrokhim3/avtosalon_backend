@@ -2,9 +2,11 @@ const Joi = require("joi");
 
 exports.signupValidation = (data) => {
   const schema = Joi.object({
-    adminName: Joi.string().min(3).max(50).required(),
-    login: Joi.string().min(3).max(15).required(),
+    userEmail: Joi.string().email().min(5).max(50).required(),
     password: Joi.string()
+      .pattern(new RegExp("^[a-zA-Z0-9]{3,30}$"))
+      .required(),
+    password2: Joi.string()
       .pattern(new RegExp("^[a-zA-Z0-9]{3,30}$"))
       .required(),
   });

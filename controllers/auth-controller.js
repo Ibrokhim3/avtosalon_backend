@@ -1,20 +1,75 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { v4 } = require("uuid");
 const User = require("../models/user-model");
+const path = require("path");
+const fs = require("fs");
+const cloudinary = require("../config/cloudinary-config");
 
 const SIGNUP = async (req, res) => {
   try {
-    const { email, login, password, adminName } = req.body;
+    const { userEmail, password, password2 } = req.body;
 
-    const user = await User.findOne({ login });
+    if (password !== password2) {
+      return res.status(400).json({ msg: "Password's weren't matched" });
+    }
+
+    const user = await User.findOne({ userEmail });
 
     if (user) {
       return res.status(400).json({ msg: "This user already exists" });
     }
 
+    const { name, size, mv } = req.files.profileImg;
+
+    if (+size / 1048576 > 2) {
+      return res.status(400).json("The size of the image must not be over 2mb");
+    }
+
+    const filename = v4() + path.extname(name);
+
+    mv(path.resolve("assets/" + filename), (err) => {
+      if (err)
+        return res
+          .status(400)
+          .json("Something went wrong, while uploading a file");
+    });
+
+    //Uploading file to the cloudinary server:
+
+    let result = null;
+
+    const options = {
+      folder: "avtosalon",
+      use_filename: true,
+      unique_filename: false,
+      overwrite: true,
+    };
+
+    try {
+      result = await cloudinary.uploader.upload("assets/" + filename, options);
+      if (!result) {
+        return res.status(500).json("Internal server error");
+      }
+      // console.log(result);
+      // return result.public_id;
+    } catch (error) {
+      // console.log(error.message);
+      res.status(500).json({ error: true, message: "Internal server error" });
+    }
+
+    const profileImgUrl = result?.secure_url;
+
+    //deleting the file from folder
+
+    fs.unlink(path.resolve("assets/" + filename), function (err) {
+      if (err) throw err;
+      console.log("File deleted!");
+    });
+
     const hashedPsw = await bcrypt.hash(password, 12);
 
-    let newUser = await User({ login, password: hashedPsw, adminName });
+    let newUser = await User({ userEmail, password: hashedPsw, profileImgUrl });
 
     await newUser.save();
 

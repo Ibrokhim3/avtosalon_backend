@@ -4,7 +4,6 @@ const cloudinary = require("../config/cloudinary-config");
 const fs = require("fs");
 const path = require("path");
 const { v4 } = require("uuid");
-const Name = require("../models/name-model");
 
 module.exports = {
   GET_MODERATING_POSTS: async (req, res) => {

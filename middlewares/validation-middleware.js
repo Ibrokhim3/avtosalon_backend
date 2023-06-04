@@ -1,4 +1,4 @@
-const { addPostValidation } = require("../validation/post-validation");
+const { addPostValidation } = require("../validation/model-validation");
 const { signupValidation } = require("../validation/user-validation");
 
 exports.userValidate = function (req, res, next) {
