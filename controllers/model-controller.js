@@ -8,106 +8,6 @@ const jwt = require("jsonwebtoken");
 const { options } = require("joi");
 
 module.exports = {
-  GET_MODERATING_POSTS: async (req, res) => {
-    try {
-      const search = req.query.search || "";
-
-      let sort = req.query.sort || "asc";
-
-      const posts = await Posts.find({
-        $and: [
-          {
-            isModerated: false,
-            isRejected: false,
-            postTitle: { $regex: search, $options: "i" },
-          },
-        ],
-      }).sort({ postDate: sort });
-
-      return res.status(200).json(posts);
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).json({ error: true, message: "Internal server error" });
-    }
-  },
-  GET_ACTIVE_POSTS: async (req, res) => {
-    const limit = parseInt(req.query.limit) || 9;
-    const search = req.query.search || "";
-    let category = req.query.category || "All";
-    let date = req.query.date || "";
-    let sort = req.query.sort || "asc";
-
-    const categoryOptions = await Category.distinct("category");
-
-    category === "All"
-      ? (category = [...categoryOptions])
-      : (category = req.query.category.split(","));
-
-    try {
-      const posts = await Posts.find({
-        isModerated: true,
-        postTitle: { $regex: search, $options: "i" },
-        postDate: { $regex: date },
-        postDir: [...category],
-      })
-        .sort({ postDate: sort })
-        .limit(limit);
-      return res.status(200).json(posts);
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).json({ error: true, message: "Internal server error" });
-    }
-  },
-  GET_REJECTED_POSTS: async (req, res) => {
-    try {
-      let sort = req.query.sort || "asc";
-      const posts = await Posts.find({ isRejected: true }).sort({
-        postDate: sort,
-      });
-      return res.status(200).json(posts);
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).json({ error: true, message: "Internal server error" });
-    }
-  },
-  SEARCH_ACTIVE_POSTS: async (req, res) => {
-    try {
-      // const page = parseInt(req.query.page) - 1 || 0;
-      const limit = parseInt(req.query.limit) || 9;
-      let date = req.query.date || "";
-      let category = req.query.category || "All";
-      let type = req.query.type || "offline";
-      let name = req.query.name || "All";
-
-      const categoryOptions = await Category.find();
-      const nameOptions = await Name.find();
-
-      name === "All"
-        ? (name = [...nameOptions])
-        : (name = req.query.name.split(","));
-
-      category === "All"
-        ? (category = [...categoryOptions])
-        : (category = req.query.category.split(","));
-
-      const posts = await Posts.find({
-        $and: [
-          {
-            isModerated: true,
-            postDate: date,
-            postType: type,
-            postDir: [...category],
-            speakerName: [...name],
-          },
-        ],
-      }).limit(limit);
-
-      return res.status(200).json(posts);
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).json({ error: true, message: "Internal server error" });
-    }
-  },
   GET_ONE_ACTIVE_POST: async (req, res) => {
     try {
       const { id } = req.params;
@@ -316,7 +216,7 @@ module.exports = {
 
       let { publicId, categoryName, id } = req.body;
 
-      if (publicId) {
+      if (req.files) {
         try {
           result = await cloudinary.api.delete_resources([publicId]);
 
@@ -333,7 +233,9 @@ module.exports = {
         }
       }
 
-      if (req.files.categoryImg) {
+      let categoryImg = "";
+
+      if (req.files) {
         const { name, size, mv } = req.files.categoryImg;
 
         if (+size / 1048576 > 2) {
@@ -380,7 +282,7 @@ module.exports = {
         }
 
         publicId = result?.public_id;
-        categoryImgUrl = result?.secure_url;
+        categoryImg = result?.secure_url;
 
         //deleting the file from folder
 
@@ -390,9 +292,15 @@ module.exports = {
         });
       }
 
+      const category = await Category.findOne({ _id: id });
+
+      categoryName = categoryName ? categoryName : category.categoryName;
+      categoryImg = categoryImg ? categoryImg : category.categoryImg;
+      publicId = req.files ? publicId : category.publicId;
+
       const updatedCategory = {
         categoryName,
-        categoryImg: categoryImgUrl,
+        categoryImg,
         publicId,
       };
 
@@ -400,31 +308,48 @@ module.exports = {
 
       await Category.findOneAndUpdate({ _id: id }, updatedCategory);
 
-      return res.status(201).json("Category updated!");
+      return res.status(200).json("Category updated!");
     } catch (error) {
       console.log(error.message);
       res.status(500).json({ error: true, message: "Internal server error" });
     }
   },
-  MODERATE_POSTS: async (req, res) => {
+  DELETE_CATEGORY: async (req, res) => {
     try {
-      const { type, id } = req.body;
-      const search = req.query.search || "";
+      const { token } = req.headers;
 
-      if (type === "true") {
-        await Posts.findByIdAndUpdate(id, {
-          isModerated: true,
-          search: { $regex: search, option: "i" },
-        });
+      const userData = jwt.verify(token, process.env.SECRET_KEY);
 
-        return res.status(201).json("Post is activated successfully");
+      if (userData.userRole !== "admin") {
+        return res
+          .status(400)
+          .json("You have no rights to control admin-panel!");
       }
 
-      await Posts.findByIdAndUpdate(id, {
-        isRejected: true,
-      });
+      const { id } = req.body;
 
-      return res.status(201).json("Post was rejected");
+      const category = await Category.findOne({ _id: id });
+
+      if (!category) {
+        return res.status(404).json("Category not found!");
+      }
+
+      try {
+        result = await cloudinary.api.delete_resources([category.publicId]);
+
+        if (!result) {
+          return res.status(500).json("Internal server error");
+        }
+        // console.log(result);
+        // return result.public_id;
+      } catch (error) {
+        // console.log(error.message);
+        res.status(500).json({ error: true, message: "Internal server error" });
+      }
+
+      await Category.findOneAndDelete({ _id: id });
+
+      return res.status(200).json("Category deleted!");
     } catch (error) {
       console.log(error.message);
       res.status(500).json({ error: true, message: "Internal server error" });
