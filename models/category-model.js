@@ -11,6 +11,11 @@ const categorySchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  publicId: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   createdBy: {
     type: String,
   },

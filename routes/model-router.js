@@ -24,6 +24,7 @@ router.get("/get-main-categories", modelCtr.GET_MAIN_CATEGORIES);
 //
 
 router.post("/add-category", categoryValidate, modelCtr.ADD_CATEGORY);
+router.put("/update-category", modelCtr.UPDATE_CATEGORY);
 router.post("/moderate-post", modelCtr.MODERATE_POSTS);
 
 module.exports = router;

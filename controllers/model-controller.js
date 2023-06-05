@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const { v4 } = require("uuid");
 const jwt = require("jsonwebtoken");
+const { options } = require("joi");
 
 module.exports = {
   GET_MODERATING_POSTS: async (req, res) => {
@@ -226,8 +227,6 @@ module.exports = {
 
       const userData = jwt.verify(token, process.env.SECRET_KEY);
 
-      console.log(userData);
-
       if (userData.userRole !== "admin") {
         return res
           .status(400)
@@ -272,14 +271,14 @@ module.exports = {
         if (!result) {
           return res.status(500).json("Internal server error");
         }
-        // console.log(result);
-        // return result.public_id;
+        // return result?.public_id;
       } catch (error) {
         // console.log(error.message);
         res.status(500).json({ error: true, message: "Internal server error" });
       }
 
       const categoryImgUrl = result?.secure_url;
+      const publicId = result?.public_id;
 
       //deleting the file from folder
 
@@ -292,6 +291,7 @@ module.exports = {
         categoryName,
         categoryImg: categoryImgUrl,
         createdBy: userData.userId,
+        publicId,
       });
 
       await newCategory.save();
@@ -314,69 +314,93 @@ module.exports = {
           .json("You have no rights to control admin-panel!");
       }
 
-      const { categoryName, _id } = req.body;
+      let { publicId, categoryName, id } = req.body;
 
-      const { name, size, mv } = req.files.categoryImg;
+      if (publicId) {
+        try {
+          result = await cloudinary.api.delete_resources([publicId]);
 
-      if (+size / 1048576 > 2) {
-        return res
-          .status(400)
-          .json("The size of the image must not be over 2mb");
+          if (!result) {
+            return res.status(500).json("Internal server error");
+          }
+          // console.log(result);
+          // return result.public_id;
+        } catch (error) {
+          // console.log(error.message);
+          res
+            .status(500)
+            .json({ error: true, message: "Internal server error" });
+        }
       }
 
-      const filename = v4() + path.extname(name);
+      if (req.files.categoryImg) {
+        const { name, size, mv } = req.files.categoryImg;
 
-      mv(path.resolve("assets/" + filename), (err) => {
-        if (err)
+        if (+size / 1048576 > 2) {
           return res
             .status(400)
-            .json("Something went wrong, while uploading a file");
-      });
-
-      //Uploading file to the cloudinary server:
-
-      let result = null;
-
-      const options = {
-        folder: "avtosalon",
-        use_filename: true,
-        unique_filename: false,
-        overwrite: true,
-      };
-
-      try {
-        result = await cloudinary.uploader.upload(
-          "assets/" + filename,
-          options
-        );
-        if (!result) {
-          return res.status(500).json("Internal server error");
+            .json("The size of the image must not be over 2mb");
         }
-        // console.log(result);
-        // return result.public_id;
-      } catch (error) {
-        // console.log(error.message);
-        res.status(500).json({ error: true, message: "Internal server error" });
+
+        const filename = v4() + path.extname(name);
+
+        mv(path.resolve("assets/" + filename), (err) => {
+          if (err)
+            return res
+              .status(400)
+              .json("Something went wrong, while uploading a file");
+        });
+
+        //Uploading file to the cloudinary server:
+
+        let result = null;
+
+        const options = {
+          folder: "avtosalon",
+          use_filename: true,
+          unique_filename: false,
+          overwrite: true,
+        };
+
+        try {
+          result = await cloudinary.uploader.upload(
+            "assets/" + filename,
+            options
+          );
+          if (!result) {
+            return res.status(500).json("Internal server error");
+          }
+          // console.log(result);
+          // return result.public_id;
+        } catch (error) {
+          // console.log(error.message);
+          res
+            .status(500)
+            .json({ error: true, message: "Internal server error" });
+        }
+
+        publicId = result?.public_id;
+        categoryImgUrl = result?.secure_url;
+
+        //deleting the file from folder
+
+        fs.unlink(path.resolve("assets/" + filename), function (err) {
+          if (err) throw err;
+          console.log("File deleted!");
+        });
       }
 
-      const categoryImgUrl = result?.secure_url;
-
-      //deleting the file from folder
-
-      fs.unlink(path.resolve("assets/" + filename), function (err) {
-        if (err) throw err;
-        console.log("File deleted!");
-      });
-
-      const newCategory = await Category({
+      const updatedCategory = {
         categoryName,
         categoryImg: categoryImgUrl,
-        createdBy: userData.userId,
-      });
+        publicId,
+      };
 
-      await newCategory.save();
+      // await updatedCategory.save();
 
-      return res.status(201).json("Category added!");
+      await Category.findOneAndUpdate({ _id: id }, updatedCategory);
+
+      return res.status(201).json("Category updated!");
     } catch (error) {
       console.log(error.message);
       res.status(500).json({ error: true, message: "Internal server error" });
