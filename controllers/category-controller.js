@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const { v4 } = require("uuid");
 const jwt = require("jsonwebtoken");
+const { options } = require("joi");
 
 module.exports = {
   GET_ONE_CATEGORY: async (req, res) => {
@@ -28,6 +29,100 @@ module.exports = {
   },
   ADD_MODEL: async (req, res) => {
     try {
+      const {
+        carName,
+        carPrice,
+        carCategory,
+        tonirovka,
+        motor,
+        year,
+        color,
+        distance,
+        gearbox,
+        desc,
+        allExp,
+        createdBy,
+      } = req.body;
+
+      const { name, size, mv } = req.files.carImg;
+
+      if (+size / 1048576 > 2) {
+        return res
+          .status(400)
+          .json("The size of the image must not be over 2mb");
+      }
+
+      const filename = v4() + path.extname(name);
+
+      mv(path.resolve("assets/" + filename), (err) => {
+        if (err)
+          return res
+            .status(400)
+            .json("Something went wrong, while uploading a file");
+      });
+
+      //Uploading file to the cloudinary server:
+
+      let result = null;
+
+      const options = {
+        folder: "pressa",
+        use_filename: true,
+        unique_filename: false,
+        overwrite: true,
+      };
+
+      try {
+        result = await cloudinary.uploader.upload(
+          "assets/" + filename,
+          options
+        );
+        if (!result) {
+          return res.status(500).json("Internal server error");
+        }
+        // console.log(result);
+        // return result.public_id;
+      } catch (error) {
+        // console.log(error.message);
+        res.status(500).json({ error: true, message: "Internal server error" });
+      }
+
+      const postImgUrl = result?.secure_url;
+
+      //deleting the file from folder
+
+      fs.unlink(path.resolve("assets/" + filename), function (err) {
+        if (err) throw err;
+        console.log("File deleted!");
+      });
+
+      const newPost = await Posts({
+        postDate,
+        postTime,
+        postDir,
+        postInnerDir,
+        postType,
+        postLink,
+        postImgUrl,
+        speakerName,
+        speakerJob,
+        speakerTelNum,
+        speakerTelNum2,
+        postTitle,
+        postDesc,
+        postText,
+      });
+
+      await newPost.save();
+
+      return res.status(201).json("Post sent to the moderation");
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ error: true, message: "Internal server error" });
+    }
+  },
+  ADD_CATEGORY: async (req, res) => {
+    try {
       const { token } = req.headers;
 
       const userData = jwt.verify(token, process.env.SECRET_KEY);
@@ -38,21 +133,9 @@ module.exports = {
           .json("You have no rights to control admin-panel!");
       }
 
-      const {
-        carName,
-        carPrice,
-        tonirovka,
-        motor,
-        year,
-        color,
-        distance,
-        gearbox,
-        desc,
-        allExp,
-        categoryId,
-      } = req.body;
+      const { categoryName } = req.body;
 
-      const { name, size, mv } = req.files.carImg;
+      const { name, size, mv } = req.files.categoryImg;
 
       if (+size / 1048576 > 2) {
         return res
@@ -88,14 +171,13 @@ module.exports = {
         if (!result) {
           return res.status(500).json("Internal server error");
         }
-        // console.log(result);
-        // return result.public_id;
+        // return result?.public_id;
       } catch (error) {
         // console.log(error.message);
         res.status(500).json({ error: true, message: "Internal server error" });
       }
 
-      const carImgUrl = result?.secure_url;
+      const categoryImgUrl = result?.secure_url;
       const publicId = result?.public_id;
 
       //deleting the file from folder
@@ -105,32 +187,22 @@ module.exports = {
         console.log("File deleted!");
       });
 
-      const newModel = await Cars({
-        carName,
-        carPrice,
-        tonirovka,
-        motor,
-        year,
-        color,
-        distance,
-        gearbox,
-        desc,
-        allExp,
-        carImg: carImgUrl,
-        publicId,
-        categoryId,
+      const newCategory = await Category({
+        categoryName,
+        categoryImg: categoryImgUrl,
         createdBy: userData.userId,
+        publicId,
       });
 
-      await newModel.save();
+      await newCategory.save();
 
-      return res.status(201).json("Model added");
+      return res.status(201).json("Category added!");
     } catch (error) {
       console.log(error.message);
       res.status(500).json({ error: true, message: "Internal server error" });
     }
   },
-  UPDATE_MODEL: async (req, res) => {
+  UPDATE_CATEGORY: async (req, res) => {
     try {
       const { token } = req.headers;
 
@@ -142,21 +214,7 @@ module.exports = {
           .json("You have no rights to control admin-panel!");
       }
 
-      let {
-        id,
-        carName,
-        carPrice,
-        tonirovka,
-        motor,
-        year,
-        color,
-        distance,
-        gearbox,
-        desc,
-        allExp,
-        categoryId,
-        publicId,
-      } = req.body;
+      let { publicId, categoryName, id } = req.body;
 
       if (req.files) {
         try {
@@ -175,10 +233,10 @@ module.exports = {
         }
       }
 
-      let carImg = "";
+      let categoryImg = "";
 
       if (req.files) {
-        const { name, size, mv } = req.files.carImg;
+        const { name, size, mv } = req.files.categoryImg;
 
         if (+size / 1048576 > 2) {
           return res
@@ -224,7 +282,7 @@ module.exports = {
         }
 
         publicId = result?.public_id;
-        carImg = result?.secure_url;
+        categoryImg = result?.secure_url;
 
         //deleting the file from folder
 
@@ -234,40 +292,23 @@ module.exports = {
         });
       }
 
-      const car = await Cars.findOne({ _id: id });
-      carName = carName ? carName : car.carName;
-      carPrice = carPrice ? carPrice : car.carPrice;
-      tonirovka = tonirovka ? tonirovka : car.tonirovka;
-      motor = motor ? motor : car.motor;
-      year = year ? year : car.year;
-      color = color ? color : car.color;
-      distance = distance ? distance : car.distance;
-      gearbox = gearbox ? gearbox : car.gearbox;
-      desc = desc ? desc : car.desc;
-      allExp = allExp ? allExp : car.allExp;
-      categoryId = categoryId ? categoryId : car.categoryId;
-      carImg = carImg ? carImg : car.carImg;
-      publicId = req.files ? publicId : car.publicId;
+      const category = await Category.findOne({ _id: id });
 
-      const updatedCar = {
-        carName,
-        carPrice,
-        tonirovka,
-        motor,
-        year,
-        color,
-        distance,
-        gearbox,
-        desc,
-        allExp,
-        categoryId,
-        carImg,
+      categoryName = categoryName ? categoryName : category.categoryName;
+      categoryImg = categoryImg ? categoryImg : category.categoryImg;
+      publicId = req.files ? publicId : category.publicId;
+
+      const updatedCategory = {
+        categoryName,
+        categoryImg,
         publicId,
       };
 
-      await Cars.findOneAndUpdate({ _id: id }, updatedCar);
+      // await updatedCategory.save();
 
-      return res.status(200).json("Model updated!");
+      await Category.findOneAndUpdate({ _id: id }, updatedCategory);
+
+      return res.status(200).json("Category updated!");
     } catch (error) {
       console.log(error.message);
       res.status(500).json({ error: true, message: "Internal server error" });

@@ -18,7 +18,7 @@ const carsSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  carCategory: {
+  categoryId: {
     type: String,
     required: true,
   },

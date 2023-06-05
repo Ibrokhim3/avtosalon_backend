@@ -1,20 +1,18 @@
 const Joi = require("joi");
 
-exports.addPostValidation = (data) => {
+exports.modelValidation = (data) => {
   const schema = Joi.object({
-    postDate: Joi.string().required(),
-    postTime: Joi.string().required(),
-    postDir: Joi.string().min(2).max(50).required(),
-    postInnerDir: Joi.string().min(2).max(50).required(),
-    postType: Joi.string().min(2).max(50).required(),
-    postLink: Joi.string().min(2).max(50).required(),
-    speakerName: Joi.string().min(2).max(50).required(),
-    speakerJob: Joi.string().min(2).max(50).required(),
-    speakerTelNum: Joi.number().required(),
-    speakerTelNum2: Joi.number().required(),
-    postTitle: Joi.string().min(2).max(50).required(),
-    postDesc: Joi.string().min(2).max(100).required(),
-    postText: Joi.string().min(2).max(1000).required(),
+    carName: Joi.string().min(2).max(50).required(),
+    carPrice: Joi.number().required(),
+    tonirovka: Joi.string().min(2).max(50).required(),
+    motor: Joi.string().min(2).max(50).required(),
+    year: Joi.string().min(2).max(50).required(),
+    color: Joi.string().min(2).max(50).required(),
+    distance: Joi.number().required(),
+    gearbox: Joi.string().min(2).max(50).required(),
+    desc: Joi.string().min(2).max(300).required(),
+    allExp: Joi.number().required(),
+    categoryId: Joi.string().required(),
   });
 
   return schema.validate(data);
