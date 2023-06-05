@@ -8,17 +8,17 @@ const jwt = require("jsonwebtoken");
 const { options } = require("joi");
 
 module.exports = {
-  GET_ONE_ACTIVE_POST: async (req, res) => {
+  GET_ONE_CATEGORY: async (req, res) => {
     try {
       const { id } = req.params;
-      const post = await Posts.findOne({ _id: id, isModerated: true });
-      return res.status(200).json(post);
+      const category = await Category.findOne({ _id: id });
+      return res.status(200).json(category);
     } catch (error) {
       console.log(error.message);
       res.status(500).json({ error: true, message: "Internal server error" });
     }
   },
-  GET_MAIN_CATEGORIES: async (req, res) => {
+  GET_CATEGORIES: async (req, res) => {
     try {
       const categories = await Category.find();
 

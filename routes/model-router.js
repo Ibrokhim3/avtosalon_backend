@@ -11,13 +11,13 @@ const router = Router();
 
 //cars
 
-router.get("/get-active-posts/:id", modelCtr.GET_ONE_ACTIVE_POST);
+
 
 //categories
 
-router.get("/get-main-categories", modelCtr.GET_MAIN_CATEGORIES);
+router.get("/get-categories/:id", modelCtr.GET_ONE_CATEGORY);
 
-//
+router.get("/get-categories", modelCtr.GET_CATEGORIES);
 
 router.post("/add-category", categoryValidate, modelCtr.ADD_CATEGORY);
 router.put("/update-category", modelCtr.UPDATE_CATEGORY);
