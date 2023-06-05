@@ -7,21 +7,21 @@ const { v4 } = require("uuid");
 const jwt = require("jsonwebtoken");
 
 module.exports = {
-  GET_ONE_CATEGORY: async (req, res) => {
+  GET_ONE_MODEL: async (req, res) => {
     try {
       const { id } = req.params;
-      const category = await Category.findOne({ _id: id });
-      return res.status(200).json(category);
+      const car = await Cars.findOne({ _id: id });
+      return res.status(200).json(car);
     } catch (error) {
       console.log(error.message);
       res.status(500).json({ error: true, message: "Internal server error" });
     }
   },
-  GET_CATEGORIES: async (req, res) => {
+  GET_MODELS: async (req, res) => {
     try {
-      const categories = await Category.find();
+      const cars = await Cars.find();
 
-      return res.status(200).json(categories);
+      return res.status(200).json(cars);
     } catch (error) {
       res.status(500).json({ error: true, message: "Internal server error" });
     }
@@ -273,7 +273,7 @@ module.exports = {
       res.status(500).json({ error: true, message: "Internal server error" });
     }
   },
-  DELETE_CATEGORY: async (req, res) => {
+  DELETE_MODEL: async (req, res) => {
     try {
       const { token } = req.headers;
 
@@ -287,14 +287,14 @@ module.exports = {
 
       const { id } = req.body;
 
-      const category = await Category.findOne({ _id: id });
+      const car = await Cars.findOne({ _id: id });
 
-      if (!category) {
-        return res.status(404).json("Category not found!");
+      if (!car) {
+        return res.status(404).json("Car not found!");
       }
 
       try {
-        result = await cloudinary.api.delete_resources([category.publicId]);
+        result = await cloudinary.api.delete_resources([car.publicId]);
 
         if (!result) {
           return res.status(500).json("Internal server error");
@@ -306,9 +306,9 @@ module.exports = {
         res.status(500).json({ error: true, message: "Internal server error" });
       }
 
-      await Category.findOneAndDelete({ _id: id });
+      await Cars.findOneAndDelete({ _id: id });
 
-      return res.status(200).json("Category deleted!");
+      return res.status(200).json("Model deleted!");
     } catch (error) {
       console.log(error.message);
       res.status(500).json({ error: true, message: "Internal server error" });
