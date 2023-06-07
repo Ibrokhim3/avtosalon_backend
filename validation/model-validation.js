@@ -11,8 +11,8 @@ exports.modelValidation = (data) => {
     distance: Joi.number().required(),
     gearbox: Joi.string().min(2).max(50).required(),
     desc: Joi.string().min(2).max(300).required(),
-    allExp: Joi.number().required(),
-    categoryId: Joi.string().required(),
+    carCategory: Joi.string().required(),
+    // allExp: Joi.number().required(),
   });
 
   return schema.validate(data);

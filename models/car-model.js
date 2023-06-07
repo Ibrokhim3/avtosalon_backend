@@ -56,9 +56,9 @@ const carsSchema = new mongoose.Schema({
   },
   createdBy: {
     type: String,
-    unique: true,
     required: true,
   },
+  likes: [String],
 });
 
 const Cars = mongoose.model("cars", carsSchema);

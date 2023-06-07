@@ -15,9 +15,14 @@ router.get("/get-categories/:id", categoryCtr.GET_ONE_CATEGORY);
 
 router.get("/get-categories", categoryCtr.GET_CATEGORIES);
 
-router.post("/add-category", categoryValidate, categoryCtr.ADD_CATEGORY);
-router.put("/update-category", categoryCtr.UPDATE_CATEGORY);
+router.post(
+  "/add-category",
+  categoryValidate,
+  verifyToken,
+  categoryCtr.ADD_CATEGORY
+);
+router.put("/update-category", verifyToken, categoryCtr.UPDATE_CATEGORY);
 
-router.delete("/delete-category", categoryCtr.DELETE_CATEGORY);
+router.delete("/delete-category", verifyToken, categoryCtr.DELETE_CATEGORY);
 
 module.exports = router;

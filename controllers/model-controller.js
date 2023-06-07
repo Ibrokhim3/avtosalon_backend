@@ -17,6 +17,18 @@ module.exports = {
       res.status(500).json({ error: true, message: "Internal server error" });
     }
   },
+  GET_MODELS_BY_CATEGORY: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const cars = await Cars.find({ categoryId: id });
+      return res.status(200).json(cars);
+    } catch (error) {
+      console.log(error.message);
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal server error" });
+    }
+  },
   GET_MODELS: async (req, res) => {
     try {
       const cars = await Cars.find();
@@ -48,8 +60,7 @@ module.exports = {
         distance,
         gearbox,
         desc,
-        allExp,
-        categoryId,
+        carCategory,
       } = req.body;
 
       const { name, size, mv } = req.files.carImg;
@@ -92,7 +103,9 @@ module.exports = {
         // return result.public_id;
       } catch (error) {
         // console.log(error.message);
-        res.status(500).json({ error: true, message: "Internal server error" });
+        return res
+          .status(500)
+          .json({ error: true, message: "Internal server error" });
       }
 
       const carImgUrl = result?.secure_url;
@@ -105,6 +118,10 @@ module.exports = {
         console.log("File deleted!");
       });
 
+      const category = await Category.findOne({ categoryName: carCategory });
+
+      const categoryId = category._id;
+
       const newModel = await Cars({
         carName,
         carPrice,
@@ -115,7 +132,7 @@ module.exports = {
         distance,
         gearbox,
         desc,
-        allExp,
+        allExp: +carPrice + 50000,
         carImg: carImgUrl,
         publicId,
         categoryId,
@@ -127,7 +144,9 @@ module.exports = {
       return res.status(201).json("Model added");
     } catch (error) {
       console.log(error.message);
-      res.status(500).json({ error: true, message: "Internal server error" });
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal server error" });
     }
   },
   UPDATE_MODEL: async (req, res) => {
@@ -169,7 +188,7 @@ module.exports = {
           // return result.public_id;
         } catch (error) {
           // console.log(error.message);
-          res
+          return res
             .status(500)
             .json({ error: true, message: "Internal server error" });
         }
@@ -218,7 +237,7 @@ module.exports = {
           // return result.public_id;
         } catch (error) {
           // console.log(error.message);
-          res
+          return res
             .status(500)
             .json({ error: true, message: "Internal server error" });
         }
@@ -235,6 +254,7 @@ module.exports = {
       }
 
       const car = await Cars.findOne({ _id: id });
+
       carName = carName ? carName : car.carName;
       carPrice = carPrice ? carPrice : car.carPrice;
       tonirovka = tonirovka ? tonirovka : car.tonirovka;
@@ -270,7 +290,9 @@ module.exports = {
       return res.status(200).json("Model updated!");
     } catch (error) {
       console.log(error.message);
-      res.status(500).json({ error: true, message: "Internal server error" });
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal server error" });
     }
   },
   DELETE_MODEL: async (req, res) => {
@@ -303,7 +325,9 @@ module.exports = {
         // return result.public_id;
       } catch (error) {
         // console.log(error.message);
-        res.status(500).json({ error: true, message: "Internal server error" });
+        return res
+          .status(500)
+          .json({ error: true, message: "Internal server error" });
       }
 
       await Cars.findOneAndDelete({ _id: id });
@@ -311,7 +335,9 @@ module.exports = {
       return res.status(200).json("Model deleted!");
     } catch (error) {
       console.log(error.message);
-      res.status(500).json({ error: true, message: "Internal server error" });
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal server error" });
     }
   },
 };

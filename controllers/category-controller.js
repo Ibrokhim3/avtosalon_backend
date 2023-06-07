@@ -15,7 +15,9 @@ module.exports = {
       return res.status(200).json(category);
     } catch (error) {
       console.log(error.message);
-      res.status(500).json({ error: true, message: "Internal server error" });
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal server error" });
     }
   },
   GET_CATEGORIES: async (req, res) => {
@@ -24,101 +26,9 @@ module.exports = {
 
       return res.status(200).json(categories);
     } catch (error) {
-      res.status(500).json({ error: true, message: "Internal server error" });
-    }
-  },
-  ADD_MODEL: async (req, res) => {
-    try {
-      const {
-        carName,
-        carPrice,
-        carCategory,
-        tonirovka,
-        motor,
-        year,
-        color,
-        distance,
-        gearbox,
-        desc,
-        allExp,
-        createdBy,
-      } = req.body;
-
-      const { name, size, mv } = req.files.carImg;
-
-      if (+size / 1048576 > 2) {
-        return res
-          .status(400)
-          .json("The size of the image must not be over 2mb");
-      }
-
-      const filename = v4() + path.extname(name);
-
-      mv(path.resolve("assets/" + filename), (err) => {
-        if (err)
-          return res
-            .status(400)
-            .json("Something went wrong, while uploading a file");
-      });
-
-      //Uploading file to the cloudinary server:
-
-      let result = null;
-
-      const options = {
-        folder: "pressa",
-        use_filename: true,
-        unique_filename: false,
-        overwrite: true,
-      };
-
-      try {
-        result = await cloudinary.uploader.upload(
-          "assets/" + filename,
-          options
-        );
-        if (!result) {
-          return res.status(500).json("Internal server error");
-        }
-        // console.log(result);
-        // return result.public_id;
-      } catch (error) {
-        // console.log(error.message);
-        res.status(500).json({ error: true, message: "Internal server error" });
-      }
-
-      const postImgUrl = result?.secure_url;
-
-      //deleting the file from folder
-
-      fs.unlink(path.resolve("assets/" + filename), function (err) {
-        if (err) throw err;
-        console.log("File deleted!");
-      });
-
-      const newPost = await Posts({
-        postDate,
-        postTime,
-        postDir,
-        postInnerDir,
-        postType,
-        postLink,
-        postImgUrl,
-        speakerName,
-        speakerJob,
-        speakerTelNum,
-        speakerTelNum2,
-        postTitle,
-        postDesc,
-        postText,
-      });
-
-      await newPost.save();
-
-      return res.status(201).json("Post sent to the moderation");
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).json({ error: true, message: "Internal server error" });
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal server error" });
     }
   },
   ADD_CATEGORY: async (req, res) => {
@@ -174,7 +84,9 @@ module.exports = {
         // return result?.public_id;
       } catch (error) {
         // console.log(error.message);
-        res.status(500).json({ error: true, message: "Internal server error" });
+        return res
+          .status(500)
+          .json({ error: true, message: "Internal server error" });
       }
 
       const categoryImgUrl = result?.secure_url;
@@ -190,7 +102,7 @@ module.exports = {
       const newCategory = await Category({
         categoryName,
         categoryImg: categoryImgUrl,
-        createdBy: userData.userId,
+        // createdBy: userData.userId,
         publicId,
       });
 
@@ -227,7 +139,7 @@ module.exports = {
           // return result.public_id;
         } catch (error) {
           // console.log(error.message);
-          res
+          return res
             .status(500)
             .json({ error: true, message: "Internal server error" });
         }
@@ -276,7 +188,7 @@ module.exports = {
           // return result.public_id;
         } catch (error) {
           // console.log(error.message);
-          res
+          return res
             .status(500)
             .json({ error: true, message: "Internal server error" });
         }
@@ -311,7 +223,9 @@ module.exports = {
       return res.status(200).json("Category updated!");
     } catch (error) {
       console.log(error.message);
-      res.status(500).json({ error: true, message: "Internal server error" });
+      return res
+        .status(500)
+        .json({ error: true, message: "Internal server error" });
     }
   },
   DELETE_CATEGORY: async (req, res) => {
@@ -344,7 +258,9 @@ module.exports = {
         // return result.public_id;
       } catch (error) {
         // console.log(error.message);
-        res.status(500).json({ error: true, message: "Internal server error" });
+        return res
+          .status(500)
+          .json({ error: true, message: "Internal server error" });
       }
 
       await Category.findOneAndDelete({ _id: id });

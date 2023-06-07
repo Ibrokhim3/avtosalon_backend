@@ -21,9 +21,8 @@ const usersSchema = new mongoose.Schema({
   },
   createdBy: {
     type: String,
-    unique: String,
   },
-  likedCars: [String],
+  // likedCars: [String],
   purchasedCars: [String],
 });
 

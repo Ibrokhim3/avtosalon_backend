@@ -12,7 +12,9 @@ exports.userValidate = function (req, res, next) {
     }
     next();
   } catch (error) {
-    res.status(500).json({ error: true, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ error: true, message: "Internal server error" });
   }
 };
 
@@ -25,7 +27,9 @@ exports.categoryValidate = function (req, res, next) {
     }
     next();
   } catch (error) {
-    res.status(500).json({ error: true, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ error: true, message: "Internal server error" });
   }
 };
 
@@ -38,6 +42,8 @@ exports.modelValidate = function (req, res, next) {
     }
     next();
   } catch (error) {
-    res.status(500).json({ error: true, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ error: true, message: "Internal server error" });
   }
 };
