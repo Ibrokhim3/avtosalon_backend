@@ -144,14 +144,18 @@ const BUY = async (req, res) => {
     });
 
     if (findId) {
-      return res.status(400).json("You already bought this car");
+      return res
+        .status(400)
+        .json({ msg: "You already bought this car", isBought: true });
     }
 
     user.purchasedCars.push(id);
 
     await user.save();
 
-    return res.status(201).json("You have bought the car!");
+    return res
+      .status(201)
+      .json({ msg: "You have bought the car!", isBought: false });
   } catch (error) {
     console.log(error.message);
     return res
@@ -205,7 +209,7 @@ const LIKE = async (req, res) => {
 
       return res
         .status(201)
-        .json({ msg: "Like removed", likeNumber: car.likes });
+        .json({ msg: "Like removed", likeNumber: car.likes, isLiked: false });
     }
 
     car.likes.push(userData.userId);
@@ -216,9 +220,11 @@ const LIKE = async (req, res) => {
 
     await user.save();
 
-    return res
-      .status(201)
-      .json({ msg: "You liked the car!", likeNumber: car.likes });
+    return res.status(201).json({
+      msg: "You liked the car!",
+      likeNumber: car.likes,
+      isLiked: true,
+    });
   } catch (error) {
     console.log(error.message);
     return res
