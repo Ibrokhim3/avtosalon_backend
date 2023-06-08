@@ -126,11 +126,15 @@ module.exports = {
           .json("You have no rights to control admin-panel!");
       }
 
-      let { publicId, categoryName, id } = req.body;
+      let { categoryName, id } = req.body;
+
+      const selectCategory = await Category.findOne({ _id: id });
 
       if (req.files) {
         try {
-          result = await cloudinary.api.delete_resources([publicId]);
+          result = await cloudinary.api.delete_resources([
+            selectCategory.publicId,
+          ]);
 
           if (!result) {
             return res.status(500).json("Internal server error");

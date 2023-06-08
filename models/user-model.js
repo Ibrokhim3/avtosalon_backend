@@ -15,6 +15,9 @@ const usersSchema = new mongoose.Schema({
   profileImg: {
     type: String,
   },
+  publicId: {
+    type: String,
+  },
   password: {
     type: String,
     required: true,
@@ -22,7 +25,7 @@ const usersSchema = new mongoose.Schema({
   createdBy: {
     type: String,
   },
-  // likedCars: [String],
+  likedCars: [String],
   purchasedCars: [String],
 });
 
