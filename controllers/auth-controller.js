@@ -262,11 +262,13 @@ const DELETE_USER_BY_ADMIN = async (req, res) => {
 
     const userData = jwt.verify(token, process.env.SECRET_KEY);
 
-    if (userData.userRole !== "admin") {
-      return res.status(400).json("You have no rights to control admin-panel!");
-    }
+    // if (userData.userRole !== "admin") {
+    //   return res.status(400).json("You have no rights to control admin-panel!");
+    // }
 
-    const { id } = req.body;
+    let { id } = req.body;
+
+    id = id ? id : userData.userId;
 
     const user = await Users.findOne({ _id: id });
 

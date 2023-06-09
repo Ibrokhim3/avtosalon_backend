@@ -17,8 +17,7 @@ router.get("/get-categories", categoryCtr.GET_CATEGORIES);
 
 router.post(
   "/add-category",
-  categoryValidate,
-  verifyToken,
+  [categoryValidate, verifyToken],
   categoryCtr.ADD_CATEGORY
 );
 router.put("/update-category", verifyToken, categoryCtr.UPDATE_CATEGORY);

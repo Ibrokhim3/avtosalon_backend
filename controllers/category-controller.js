@@ -79,18 +79,21 @@ module.exports = {
           options
         );
         if (!result) {
-          return res.status(500).json("Internal server error");
+          return res
+            .status(500)
+            .json("Internal server error in cloudinary. Try again");
         }
         // return result?.public_id;
       } catch (error) {
         // console.log(error.message);
-        return res
-          .status(500)
-          .json({ error: true, message: "Internal server error" });
+        return res.status(500).json({
+          error: true,
+          message: "Internal server error in cloudinary. Try again",
+        });
       }
 
-      const categoryImgUrl = result?.secure_url;
-      const publicId = result?.public_id;
+      const categoryImgUrl = result.secure_url;
+      const publicId = result.public_id;
 
       //deleting the file from folder
 
@@ -197,8 +200,8 @@ module.exports = {
             .json({ error: true, message: "Internal server error" });
         }
 
-        publicId = result?.public_id;
-        categoryImg = result?.secure_url;
+        publicId = result.public_id;
+        categoryImg = result.secure_url;
 
         //deleting the file from folder
 
