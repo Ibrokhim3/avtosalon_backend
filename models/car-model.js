@@ -9,7 +9,34 @@ const carsSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  carImg1: {
+    type: String,
+    required: true,
+  },
+  carImg2: {
+    type: String,
+    required: true,
+  },
+  carImg3: {
+    type: String,
+    required: true,
+  },
   publicId: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  publicId1: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  publicId2: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  publicId3: {
     type: String,
     required: true,
     unique: true,
