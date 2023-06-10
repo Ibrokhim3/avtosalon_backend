@@ -71,6 +71,9 @@
  *         - desc
  *         - carCategory
  *         - carImg
+ *         - carImg1
+ *         - carImg2
+ *         - carImg3
  *       properties:
  *           carName:
  *             type: string
@@ -93,6 +96,15 @@
  *           carCategory:
  *             type: string
  *           carImg:
+ *             type: string
+ *             format: binary
+ *           carImg1:
+ *             type: string
+ *             format: binary
+ *           carImg2:
+ *             type: string
+ *             format: binary
+ *           carImg3:
  *             type: string
  *             format: binary
  *
@@ -142,13 +154,22 @@
  *                carImg:
  *                  type: string
  *                  format: binary
+ *                carImg1:
+ *                  type: string
+ *                  format: binary
+ *                carImg2:
+ *                  type: string
+ *                  format: binary
+ *                carImg3:
+ *                  type: string
+ *                  format: binary
  *     responses:
  *       201:
- *         description: Category added.
+ *         description: Model added.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/categoryAddSchema'
+ *               $ref: '#/components/schemas/modelAddSchema'
  *       400:
  *          description: Bad request, fill the form correctly
  *       500:
@@ -223,6 +244,15 @@
  *                carCategory:
  *                  type: string
  *                carImg:
+ *                  type: string
+ *                  format: binary
+ *                carImg1:
+ *                  type: string
+ *                  format: binary
+ *                carImg2:
+ *                  type: string
+ *                  format: binary
+ *                carImg3:
  *                  type: string
  *                  format: binary
  *     responses:

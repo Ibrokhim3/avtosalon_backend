@@ -46,6 +46,10 @@ connectToDb();
 
 const PORT = process.env.PORT || 2005;
 
+app.get("/avtosalon/get-users", (request, response) => {
+  response.send(users);
+});
+
 app.listen(PORT, () => {
   console.log(`Server ${PORT} is running`);
 });

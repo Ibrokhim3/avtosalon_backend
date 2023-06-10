@@ -11,7 +11,7 @@ router.get("/get-models/:id", modelCtr.GET_MODELS_BY_CATEGORY);
 
 router.get("/get-models", modelCtr.GET_MODELS);
 
-router.post("/add-model", verifyToken, modelValidate, modelCtr.ADD_MODEL);
+router.post("/add-model", [modelValidate, verifyToken], modelCtr.ADD_MODEL);
 
 router.put("/update-model", verifyToken, modelCtr.UPDATE_MODEL);
 

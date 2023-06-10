@@ -255,11 +255,27 @@ module.exports = {
         return res.status(404).json("Category not found!");
       }
 
+      const categoryCars = await Cars.find({ categoryId: id });
+
+      let arr = null;
+
+      if (categoryCars) {
+        arr = categoryCars?.map((item) => {
+          return item.publicId;
+        });
+
+        arr.push(category.publicId);
+      }
+
+      arr = [category.publicId];
+
       try {
-        result = await cloudinary.api.delete_resources([category.publicId]);
+        result = await cloudinary.api.delete_resources(arr);
 
         if (!result) {
-          return res.status(500).json("Internal server error");
+          return res
+            .status(500)
+            .json("Internal server error cloudinary. Check the connection");
         }
         // console.log(result);
         // return result.public_id;
@@ -270,12 +286,16 @@ module.exports = {
           .json({ error: true, message: "Internal server error" });
       }
 
+      await Cars.deleteMany({ categoryId: id });
       await Category.findOneAndDelete({ _id: id });
 
       return res.status(200).json("Category deleted!");
     } catch (error) {
       console.log(error.message);
-      res.status(500).json({ error: true, message: "Internal server error" });
+      res.status(500).json({
+        error: true,
+        message: "Internal server error. Check the connection",
+      });
     }
   },
 };

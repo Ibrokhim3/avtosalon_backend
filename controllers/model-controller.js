@@ -297,7 +297,7 @@ module.exports = {
         categoryId,
       } = req.body;
 
-      const car = await Cars.findOne({ _id: id });
+      let car = await Cars.findOne({ _id: id });
 
       if (!car) {
         return res.status(404).json("Car not found!");
@@ -337,8 +337,8 @@ module.exports = {
         overwrite: true,
       };
 
-      if (req.files.carImg) {
-        const { name, size, mv } = req.files.carImg;
+      if (req.files?.carImg) {
+        const { name, size, mv } = req.files?.carImg;
 
         if (+size / 1048576 > 2) {
           return res
@@ -387,7 +387,7 @@ module.exports = {
         });
       }
 
-      if (req.files.carImg1) {
+      if (req.files?.carImg1) {
         const { name: name1, size: size1, mv: mv1 } = req.files?.carImg1;
 
         if (+size1 / 1048576 > 2) {
@@ -440,7 +440,7 @@ module.exports = {
         });
       }
 
-      if (req.files.carImg2) {
+      if (req.files?.carImg2) {
         const { name: name2, size: size2, mv: mv2 } = req.files?.carImg2;
 
         if (+size2 / 1048576 > 2) {
@@ -493,7 +493,7 @@ module.exports = {
         });
       }
 
-      if (req.files.carImg3) {
+      if (req.files?.carImg3) {
         const { name: name3, size: size3, mv: mv3 } = req.files?.carImg3;
 
         if (+size3 / 1048576 > 2) {
@@ -557,14 +557,14 @@ module.exports = {
       desc = desc ? desc : car.desc;
       allExp = allExp ? allExp : car.allExp;
       categoryId = categoryId ? categoryId : car.categoryId;
-      carImg = carImg ? carImg : car?.carImg;
+      carImg = carImg ? carImg : car.carImg;
       carImg1 = carImg1 ? carImg1 : car.carImg1;
       carImg2 = carImg2 ? carImg2 : car.carImg2;
       carImg3 = carImg3 ? carImg3 : car.carImg3;
-      publicId = req.files.carImg ? publicId : car.publicId;
-      publicId1 = req.files.carImg1 ? publicId1 : car.publicId1;
-      publicId2 = req.files.carImg2 ? publicId2 : car.publicId2;
-      publicId3 = req.files.carImg3 ? publicId3 : car.publicId3;
+      publicId = req.files?.carImg ? publicId : car.publicId;
+      publicId1 = req.files?.carImg1 ? publicId1 : car.publicId1;
+      publicId2 = req.files?.carImg2 ? publicId2 : car.publicId2;
+      publicId3 = req.files?.carImg3 ? publicId3 : car.publicId3;
 
       const updatedCar = {
         carName,
@@ -619,7 +619,12 @@ module.exports = {
       }
 
       try {
-        result = await cloudinary.api.delete_resources([car.publicId]);
+        result = await cloudinary.api.delete_resources([
+          car.publicId,
+          car.publicId1,
+          car.publicId2,
+          car.publicId3,
+        ]);
 
         if (!result) {
           return res.status(500).json("Internal server error");
