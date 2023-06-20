@@ -10,6 +10,7 @@ exports.signupValidation = (data) => {
       .pattern(new RegExp("^[a-zA-Z0-9]{3,30}$"))
       .required(),
     userRole: Joi.string(),
+    profileImg: Joi.allow(""),
   });
 
   return schema.validate(data);

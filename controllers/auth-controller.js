@@ -23,55 +23,65 @@ const SIGNUP = async (req, res) => {
       return res.status(400).json({ msg: "This user already exists" });
     }
 
-    const { name, size, mv } = req.files.profileImg;
+    let profileImg = "";
+    let publicId = "";
 
-    if (+size / 1048576 > 2) {
-      return res.status(400).json("The size of the image must not be over 2mb");
-    }
+    if (req.files) {
+      const { name, size, mv } = req.files.profileImg;
 
-    const filename = v4() + path.extname(name);
-
-    mv(path.resolve("assets/" + filename), (err) => {
-      if (err)
+      if (+size / 1048576 > 2) {
         return res
           .status(400)
-          .json("Something went wrong, while uploading a file");
-    });
-
-    //Uploading file to the cloudinary server:
-
-    let result = null;
-
-    const options = {
-      folder: "avtosalon",
-      use_filename: true,
-      unique_filename: false,
-      overwrite: true,
-    };
-
-    try {
-      result = await cloudinary.uploader.upload("assets/" + filename, options);
-      if (!result) {
-        return res.status(500).json("Internal server error");
+          .json("The size of the image must not be over 2mb");
       }
-      // console.log(result);
-      // return result.public_id;
-    } catch (error) {
-      // console.log(error.message);
-      return res
-        .status(500)
-        .json({ error: true, message: "Internal server error" });
+
+      const filename = v4() + path.extname(name);
+
+      mv(path.resolve("assets/" + filename), (err) => {
+        if (err)
+          return res
+            .status(400)
+            .json("Something went wrong, while uploading a file");
+      });
+
+      //Uploading file to the cloudinary server:
+
+      let result = null;
+
+      const options = {
+        folder: "avtosalon",
+        use_filename: true,
+        unique_filename: false,
+        overwrite: true,
+      };
+
+      try {
+        result = await cloudinary.uploader.upload(
+          "assets/" + filename,
+          options
+        );
+        if (!result) {
+          return res.status(500).json("Internal server error");
+        }
+        // console.log(result);
+        // return result.public_id;
+      } catch (error) {
+        // console.log(error.message);
+        return res
+          .status(500)
+          .json({ error: true, message: "Internal server error" });
+      }
+
+      profileImg = result?.secure_url;
+      publicId = result?.public_id;
+
+      //deleting the file from folder
+
+      fs.unlink(path.resolve("assets/" + filename), function (err) {
+        if (err) throw err;
+        console.log("File deleted!");
+      });
     }
-
-    const profileImg = result?.secure_url;
-    const publicId = result?.public_id;
-
-    //deleting the file from folder
-
-    fs.unlink(path.resolve("assets/" + filename), function (err) {
-      if (err) throw err;
-      console.log("File deleted!");
-    });
 
     const hashedPsw = await bcrypt.hash(password, 12);
 
@@ -116,8 +126,11 @@ const LOGIN = async (req, res) => {
     );
 
     const userRole = user.userRole;
+    const userId = user._id;
 
-    return res.status(201).json({ token, userRole, msg: "You're logged in" });
+    return res
+      .status(201)
+      .json({ token, userRole, userId, msg: "You're logged in" });
   } catch (error) {
     console.log(error.message);
     return res
@@ -138,6 +151,7 @@ const BUY = async (req, res) => {
     if (!car) return res.status(404).json("Car not found");
 
     const user = await Users.findOne({ _id: userData.userId });
+    if (!user) return res.status(404).json("User not found");
 
     const findId = user.purchasedCars.find((item) => {
       return item === id;
@@ -146,16 +160,18 @@ const BUY = async (req, res) => {
     if (findId) {
       return res
         .status(400)
-        .json({ msg: "You already bought this car", isBought: true });
+        .json({ msg: "You have already added this model", isBought: true });
     }
 
     user.purchasedCars.push(id);
+    car.purchasedBy.push(user._id);
 
     await user.save();
+    await car.save();
 
     return res
       .status(201)
-      .json({ msg: "You have bought the car!", isBought: false });
+      .json({ msg: "The model is added to basket", isBought: true });
   } catch (error) {
     console.log(error.message);
     return res

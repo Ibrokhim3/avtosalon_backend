@@ -7,6 +7,8 @@ const router = Router();
 
 //cars
 
+router.get("/get-model/:id", modelCtr.GET_ONE_MODEL);
+
 router.get("/get-models/:id", modelCtr.GET_MODELS_BY_CATEGORY);
 
 router.get("/get-models", modelCtr.GET_MODELS);

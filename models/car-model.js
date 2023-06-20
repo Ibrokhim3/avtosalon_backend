@@ -86,7 +86,7 @@ const carsSchema = new mongoose.Schema({
     required: true,
   },
   likes: [String],
-  purchasedCars: [String],
+  purchasedBy: [String],
 });
 
 const Cars = mongoose.model("cars", carsSchema);

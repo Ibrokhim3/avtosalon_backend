@@ -10,7 +10,9 @@ module.exports = {
   GET_ONE_MODEL: async (req, res) => {
     try {
       const { id } = req.params;
+      console.log(id);
       const car = await Cars.findOne({ _id: id });
+      console.log(car);
       return res.status(200).json(car);
     } catch (error) {
       console.log(error.message);
