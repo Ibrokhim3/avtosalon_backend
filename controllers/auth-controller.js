@@ -158,9 +158,7 @@ const BUY = async (req, res) => {
     });
 
     if (findId) {
-      return res
-        .status(400)
-        .json({ msg: "You have already added this model", isBought: true });
+      return res.status(400).json({ msg: "You have already added this model" });
     }
 
     user.purchasedCars.push(id);

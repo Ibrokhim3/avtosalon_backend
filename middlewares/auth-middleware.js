@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 module.exports.verifyToken = async (req, res, next) => {
   try {
     if (!req.headers.token) {
-      return res.status(400).json("You have to log in to the system!");
+      return res.status(403).json("You have to log in to the system!");
     }
 
     const userData = jwt.verify(req.headers.token, process.env.SECRET_KEY);
@@ -12,7 +12,7 @@ module.exports.verifyToken = async (req, res, next) => {
       return next();
     }
     return res
-      .status(404)
+      .status(403)
       .json("Token doesn't exist or you are not authorized!");
   } catch (error) {
     return res
